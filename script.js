@@ -5,8 +5,6 @@ const state = {
   score: 0,
   streak: 0,
   revealed: false,
-  startTime: 0,
-  timerId: null,
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -231,20 +229,6 @@ function clearExpression() {
   showMessage("", "");
 }
 
-function startTimer() {
-  stopTimer();
-  state.startTime = Date.now();
-  state.timerId = setInterval(() => {
-    const s = (Date.now() - state.startTime) / 1000;
-    $("#timer").textContent = s.toFixed(1) + "s";
-  }, 100);
-}
-
-function stopTimer() {
-  if (state.timerId) clearInterval(state.timerId);
-  state.timerId = null;
-}
-
 function newRound() {
   const p = generatePuzzle();
   state.nums = p.nums;
@@ -254,7 +238,6 @@ function newRound() {
   renderCards();
   renderExpression();
   showMessage("", "");
-  startTimer();
 }
 
 function submit() {
@@ -279,7 +262,6 @@ function submit() {
     state.streak += 1;
     renderStats();
     showMessage("答对了！太棒了 🎉", "ok");
-    stopTimer();
     setTimeout(newRound, 1400);
   } else {
     state.streak = 0;

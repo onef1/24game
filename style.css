@@ -54,17 +54,17 @@ body {
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
   margin-bottom: 18px;
 }
 .card {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1 / 1;
   background: var(--card);
   color: var(--ink);
   border: none;
   border-radius: 14px;
-  font-size: 34px;
+  font-size: 46px;
   font-weight: 800;
   cursor: pointer;
   box-shadow: 0 6px 0 rgba(0, 0, 0, 0.18);
@@ -93,8 +93,8 @@ body {
 .btn {
   border: none;
   border-radius: 12px;
-  padding: 14px;
-  font-size: 20px;
+  padding: 17px;
+  font-size: 24px;
   font-weight: 700;
   cursor: pointer;
   color: #fff;
@@ -103,13 +103,13 @@ body {
 .btn:active { transform: translateY(2px); }
 .btn:hover { filter: brightness(1.08); }
 
-.btn.op { background: rgba(255, 255, 255, 0.18); }
+.btn.op { background: rgba(255, 255, 255, 0.18); font-size: 32px; }
 .btn.func { background: rgba(0, 0, 0, 0.25); font-size: 17px; }
 .btn.danger { background: var(--bad); }
 .btn.submit {
   background: var(--accent);
-  font-size: 20px;
-  padding: 15px;
+  font-size: 24px;
+  padding: 17px;
 }
 .btn.action { background: rgba(255, 255, 255, 0.16); font-size: 16px; }
 
@@ -127,7 +127,8 @@ body {
 
 @media (max-width: 420px) {
   .game { padding: 18px; }
-  .card { font-size: 28px; }
+  .card { font-size: 36px; }
   .expression { font-size: 20px; }
-  .btn { padding: 12px; font-size: 18px; }
+  .btn { padding: 14px; font-size: 20px; }
+  .btn.op { font-size: 26px; }
 }
