@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>24点游戏</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game">
+    <header class="header">
+      <h1>24点游戏</h1>
+      <p class="subtitle">用下面 4 个数字，通过 + − × ÷ 和括号，凑成 24</p>
+    </header>
+
+    <div class="stats">
+      <div class="stat"><span class="label">得分</span><span id="score">0</span></div>
+      <div class="stat"><span class="label">连对</span><span id="streak">0</span></div>
+      <div class="stat"><span class="label">用时</span><span id="timer">0.0s</span></div>
+    </div>
+
+    <div class="cards" id="cards"></div>
+
+    <div class="expression" id="expression">
+      <span class="placeholder">点击数字和符号，在这里拼出算式</span>
+    </div>
+
+    <div class="pad">
+      <div class="row">
+        <button class="btn op" data-op="(">(</button>
+        <button class="btn op" data-op=")">)</button>
+        <button class="btn func" id="backspace">⌫</button>
+        <button class="btn func danger" id="clear">清空</button>
+      </div>
+      <div class="row">
+        <button class="btn op" data-op="+">+</button>
+        <button class="btn op" data-op="-">−</button>
+        <button class="btn op" data-op="×">×</button>
+        <button class="btn op" data-op="÷">÷</button>
+      </div>
+      <button class="btn submit" id="submit">= 24，确认</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn action" id="newRound">换一题</button>
+      <button class="btn action" id="showAnswer">看答案</button>
+      <button class="btn action danger" id="reset">重新开始</button>
+    </div>
+
+    <div class="message" id="message"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
