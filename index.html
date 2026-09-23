@@ -18,32 +18,32 @@
       <div class="stat"><span class="label">连对</span><span id="streak">0</span></div>
     </div>
 
-    <div class="cards" id="cards"></div>
+    <div class="workspace">
+      <section class="numbers">
+        <div class="cards" id="cards"></div>
+        <div class="actions">
+          <button class="btn action" id="newRound">换一题</button>
+          <button class="btn action" id="showAnswer">看答案</button>
+          <button class="btn action danger" id="reset">重新开始</button>
+        </div>
+      </section>
 
-    <div class="expression" id="expression">
-      <span class="placeholder">点击数字和符号，在这里拼出算式</span>
-    </div>
-
-    <div class="pad">
-      <div class="row">
-        <button class="btn op" data-op="(">(</button>
-        <button class="btn op" data-op=")">)</button>
-        <button class="btn func" id="backspace">⌫</button>
-        <button class="btn func danger" id="clear">清空</button>
-      </div>
-      <div class="row">
-        <button class="btn op" data-op="+">+</button>
-        <button class="btn op" data-op="-">−</button>
-        <button class="btn op" data-op="×">×</button>
-        <button class="btn op" data-op="÷">÷</button>
-      </div>
-      <button class="btn submit" id="submit">= 24，确认</button>
-    </div>
-
-    <div class="actions">
-      <button class="btn action" id="newRound">换一题</button>
-      <button class="btn action" id="showAnswer">看答案</button>
-      <button class="btn action danger" id="reset">重新开始</button>
+      <section class="calc">
+        <input id="expression" type="text" placeholder="点击这里，直接输入或修改算式" autocomplete="off" spellcheck="false">
+        <div class="ops">
+          <button class="btn op" data-op="+">+</button>
+          <button class="btn op" data-op="-">−</button>
+          <button class="btn op" data-op="×">×</button>
+          <button class="btn op" data-op="÷">÷</button>
+        </div>
+        <div class="tools">
+          <button class="btn tool" data-op="(">(</button>
+          <button class="btn tool" data-op=")">)</button>
+          <button class="btn tool" id="backspace">⌫</button>
+          <button class="btn tool danger" id="clear">清空</button>
+        </div>
+        <button class="btn submit" id="submit">= 24，确认</button>
+      </section>
     </div>
 
     <div class="message" id="message"></div>

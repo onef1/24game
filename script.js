@@ -1,7 +1,6 @@
 const state = {
-  nums: [],          // 当前 4 个数字
-  solutions: [],     // 当前题目的解法列表
-  tokens: [],        // 玩家拼的算式 token 列表
+  nums: [],
+  solutions: [],
   score: 0,
   streak: 0,
   revealed: false,
@@ -12,17 +11,11 @@ const $ = (sel) => document.querySelector(sel);
 // ---------- 24 点求解器 ----------
 function solve24(nums) {
   const results = [];
-  const items = nums.map((n, i) => ({
-    val: n,
-    str: String(n),
-    ids: [i],
-  }));
+  const items = nums.map((n, i) => ({ val: n, str: String(n), ids: [i] }));
 
   function rec(list) {
     if (list.length === 1) {
-      if (Math.abs(list[0].val - 24) < 1e-6) {
-        results.push(list[0].str);
-      }
+      if (Math.abs(list[0].val - 24) < 1e-6) results.push(list[0].str);
       return;
     }
     for (let i = 0; i < list.length; i++) {
@@ -38,9 +31,7 @@ function solve24(nums) {
         ];
         if (Math.abs(b.val) > 1e-9) combos.push({ val: a.val / b.val, str: `(${a.str}÷${b.str})` });
         if (Math.abs(a.val) > 1e-9) combos.push({ val: b.val / a.val, str: `(${b.str}÷${a.str})` });
-        for (const c of combos) {
-          rec([...rest, c]);
-        }
+        for (const c of combos) rec([...rest, c]);
       }
     }
   }
@@ -53,24 +44,50 @@ function generatePuzzle() {
   for (let i = 0; i < 5000; i++) {
     const nums = Array.from({ length: 4 }, () => 1 + Math.floor(Math.random() * 13));
     const sols = solve24(nums);
-    if (sols.length > 0) {
-      return { nums, sols };
-    }
+    if (sols.length > 0) return { nums, sols };
   }
-  // 极小概率兜底：给一个一定有解的题目
   return { nums: [3, 3, 8, 8], sols: solve24([3, 3, 8, 8]) };
 }
 
-// ---------- 表达式求值（递归下降，不用 eval） ----------
+// ---------- 词法分析：把输入字符串转成 token ----------
+function tokenize(str) {
+  const s = String(str)
+    .replace(/×/g, "*").replace(/÷/g, "/")
+    .replace(/−/g, "-").replace(/—/g, "-")
+    .replace(/＋/g, "+").replace(/（/g, "(").replace(/）/g, ")")
+    .replace(/\s+/g, "");
+  const tokens = [];
+  let i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (/[0-9]/.test(ch)) {
+      let num = "";
+      while (i < s.length && /[0-9]/.test(s[i])) { num += s[i]; i++; }
+      tokens.push({ type: "num", value: parseInt(num, 10) });
+      continue;
+    }
+    if ("+-*/".includes(ch)) {
+      const map = { "+": "+", "-": "-", "*": "×", "/": "÷" };
+      tokens.push({ type: "op", value: map[ch] });
+      i++;
+      continue;
+    }
+    if (ch === "(" || ch === ")") {
+      tokens.push({ type: "paren", value: ch });
+      i++;
+      continue;
+    }
+    throw new Error("含有无法识别的字符：" + ch);
+  }
+  return tokens;
+}
+
+// ---------- 表达式求值（递归下降） ----------
 function evalTokens(tokens) {
   let pos = 0;
+  function peek() { return tokens[pos]; }
+  function next() { return tokens[pos++]; }
 
-  function peek() {
-    return tokens[pos];
-  }
-  function next() {
-    return tokens[pos++];
-  }
   function parseExpression() {
     let v = parseTerm();
     while (pos < tokens.length && (peek().value === "+" || peek().value === "-")) {
@@ -85,9 +102,8 @@ function evalTokens(tokens) {
     while (pos < tokens.length && (peek().value === "×" || peek().value === "÷")) {
       const op = next().value;
       const rhs = parseFactor();
-      if (op === "×") {
-        v = v * rhs;
-      } else {
+      if (op === "×") v = v * rhs;
+      else {
         if (Math.abs(rhs) < 1e-9) throw new Error("除数不能为 0");
         v = v / rhs;
       }
@@ -97,17 +113,12 @@ function evalTokens(tokens) {
   function parseFactor() {
     const tok = peek();
     if (!tok) throw new Error("算式不完整");
-    if (tok.type === "num") {
-      next();
-      return tok.value;
-    }
+    if (tok.type === "num") { next(); return tok.value; }
     if (tok.type === "paren" && tok.value === "(") {
       next();
       const v = parseExpression();
       const close = next();
-      if (!close || close.type !== "paren" || close.value !== ")") {
-        throw new Error("括号没有闭合");
-      }
+      if (!close || close.type !== "paren" || close.value !== ")") throw new Error("括号没有闭合");
       return v;
     }
     throw new Error("算式格式不对");
@@ -118,12 +129,11 @@ function evalTokens(tokens) {
   return result;
 }
 
-// ---------- 校验：4 个数字是否各用一次、结构是否合法 ----------
+// ---------- 校验：4 个数字各用一次、结构合法 ----------
 function validateTokens(tokens, nums) {
-  const numTokens = tokens.filter((t) => t.type === "num");
-  const usedIds = numTokens.map((t) => t.id).sort();
-  const allIds = nums.map((_, i) => i).sort();
-  if (usedIds.join(",") !== allIds.join(",")) {
+  const used = tokens.filter((t) => t.type === "num").map((t) => t.value).sort((a, b) => a - b);
+  const need = nums.slice().sort((a, b) => a - b);
+  if (used.join(",") !== need.join(",")) {
     return "必须把 4 个数字全部用上，且每个只能用一次";
   }
 
@@ -137,14 +147,10 @@ function validateTokens(tokens, nums) {
       if (depth < 0) return "括号不匹配";
     }
     if (t.type === "op") {
-      if (!prev || prev.type === "op" || (prev.type === "paren" && prev.value === "(")) {
-        return "运算符位置不对";
-      }
+      if (!prev || prev.type === "op" || (prev.type === "paren" && prev.value === "(")) return "运算符位置不对";
       if (!nxt) return "算式不完整";
     }
-    if (t.type === "num") {
-      if (prev && prev.type === "num") return "两个数字之间需要运算符";
-    }
+    if (t.type === "num" && prev && prev.type === "num") return "两个数字之间需要运算符";
   }
   if (depth !== 0) return "括号没有闭合";
   return null;
@@ -154,28 +160,33 @@ function validateTokens(tokens, nums) {
 function renderCards() {
   const box = $("#cards");
   box.innerHTML = "";
-  const used = new Set(state.tokens.filter((t) => t.type === "num").map((t) => t.id));
-  state.nums.forEach((n, i) => {
+  state.nums.forEach((n) => {
     const btn = document.createElement("button");
-    btn.className = "card" + (used.has(i) ? " used" : "");
+    btn.className = "card";
     btn.textContent = n;
-    btn.addEventListener("click", () => addNumber(i));
+    btn.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      insertAtCursor(String(n));
+    });
     box.appendChild(btn);
   });
+  updateCardStates();
 }
 
-function tokenText(t) {
-  if (t.type === "num") return String(t.value);
-  return t.value;
-}
-
-function renderExpression() {
-  const box = $("#expression");
-  if (state.tokens.length === 0) {
-    box.innerHTML = '<span class="placeholder">点击数字和符号，在这里拼出算式</span>';
-    return;
+function updateCardStates() {
+  let used = {};
+  try {
+    const tokens = tokenize($("#expression").value);
+    tokens.filter((t) => t.type === "num").forEach((t) => { used[t.value] = (used[t.value] || 0) + 1; });
+  } catch (e) {
+    used = {};
   }
-  box.textContent = state.tokens.map(tokenText).join(" ");
+  const deck = {};
+  state.nums.forEach((n) => { deck[n] = (deck[n] || 0) + 1; });
+  const cards = document.querySelectorAll("#cards .card");
+  state.nums.forEach((n, i) => {
+    cards[i].classList.toggle("used", (used[n] || 0) >= (deck[n] || 0));
+  });
 }
 
 function renderStats() {
@@ -189,55 +200,55 @@ function showMessage(text, type) {
   el.className = "message" + (type ? " " + type : "");
 }
 
-// ---------- 操作 ----------
-function addNumber(id) {
-  if (state.revealed) return;
-  const last = state.tokens[state.tokens.length - 1];
-  if (last && last.type === "num") return; // 两个数字不能挨着
-  state.tokens.push({ type: "num", value: state.nums[id], id });
-  renderCards();
-  renderExpression();
-}
-
-function addOp(op) {
-  if (state.revealed) return;
-  const last = state.tokens[state.tokens.length - 1];
-  if (state.tokens.length === 0) return;
-  if (last.type === "op") return;
-  if (last.type === "paren" && last.value === "(") return;
-  state.tokens.push({ type: "op", value: op });
-  renderExpression();
-}
-
-function addParen(p) {
-  if (state.revealed) return;
-  state.tokens.push({ type: "paren", value: p });
-  renderExpression();
+// ---------- 输入操作 ----------
+function insertAtCursor(text) {
+  const el = $("#expression");
+  const start = el.selectionStart ?? el.value.length;
+  const end = el.selectionEnd ?? el.value.length;
+  el.value = el.value.slice(0, start) + text + el.value.slice(end);
+  const pos = start + text.length;
+  el.focus();
+  el.setSelectionRange(pos, pos);
+  updateCardStates();
 }
 
 function backspace() {
-  state.tokens.pop();
-  renderCards();
-  renderExpression();
+  const el = $("#expression");
+  const start = el.selectionStart ?? 0;
+  const end = el.selectionEnd ?? 0;
+  if (start === end) {
+    if (start > 0) {
+      el.value = el.value.slice(0, start - 1) + el.value.slice(start);
+      el.focus();
+      el.setSelectionRange(start - 1, start - 1);
+    }
+  } else {
+    el.value = el.value.slice(0, start) + el.value.slice(end);
+    el.focus();
+    el.setSelectionRange(start, start);
+  }
+  updateCardStates();
 }
 
 function clearExpression() {
-  state.tokens = [];
-  state.revealed = false;
-  renderCards();
-  renderExpression();
+  $("#expression").value = "";
+  $("#expression").focus();
+  updateCardStates();
   showMessage("", "");
 }
 
+// ---------- 对局 ----------
 function newRound() {
   const p = generatePuzzle();
   state.nums = p.nums;
   state.solutions = p.sols;
-  state.tokens = [];
   state.revealed = false;
+  $("#expression").value = "";
   renderCards();
-  renderExpression();
+  renderStats();
   showMessage("", "");
+  updateCardStates();
+  $("#expression").focus();
 }
 
 function submit() {
@@ -245,14 +256,18 @@ function submit() {
     showMessage("这题已经看过答案啦，换一题吧", "err");
     return;
   }
-  const err = validateTokens(state.tokens, state.nums);
-  if (err) {
-    showMessage(err, "err");
+  let tokens;
+  try {
+    tokens = tokenize($("#expression").value);
+  } catch (e) {
+    showMessage(e.message, "err");
     return;
   }
+  const err = validateTokens(tokens, state.nums);
+  if (err) { showMessage(err, "err"); return; }
   let value;
   try {
-    value = evalTokens(state.tokens);
+    value = evalTokens(tokens);
   } catch (e) {
     showMessage(e.message, "err");
     return;
@@ -271,8 +286,7 @@ function submit() {
 }
 
 function round(v) {
-  const r = Math.round(v * 1000) / 1000;
-  return r;
+  return Math.round(v * 1000) / 1000;
 }
 
 function showAnswer() {
@@ -287,17 +301,21 @@ function showAnswer() {
 function reset() {
   state.score = 0;
   state.streak = 0;
-  renderStats();
   newRound();
 }
 
 // ---------- 事件绑定 ----------
 function bind() {
   document.querySelectorAll(".op").forEach((b) => {
-    b.addEventListener("click", () => {
-      const op = b.dataset.op;
-      if (op === "(" || op === ")") addParen(op);
-      else addOp(op);
+    b.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      insertAtCursor(b.dataset.op);
+    });
+  });
+  document.querySelectorAll(".tool[data-op]").forEach((b) => {
+    b.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      insertAtCursor(b.dataset.op);
     });
   });
   $("#backspace").addEventListener("click", backspace);
@@ -306,6 +324,7 @@ function bind() {
   $("#newRound").addEventListener("click", newRound);
   $("#showAnswer").addEventListener("click", showAnswer);
   $("#reset").addEventListener("click", reset);
+  $("#expression").addEventListener("input", updateCardStates);
 }
 
 bind();
